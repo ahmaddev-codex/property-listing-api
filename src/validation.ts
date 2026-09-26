@@ -34,9 +34,31 @@ const pagination = {
 
 export const listQuerySchema = z.object(pagination);
 
+export const searchQuerySchema = z
+  .object({
+    lat: z.coerce.number().min(-90).max(90),
+    lng: z.coerce.number().min(-180).max(180),
+    radiusKm: z.coerce.number().positive().max(500),
+    type: z.enum(LISTING_TYPES).optional(),
+    minPrice: z.coerce.number().min(0).optional(),
+    maxPrice: z.coerce.number().min(0).optional(),
+    minBedrooms: z.coerce.number().int().min(0).optional(),
+    maxBedrooms: z.coerce.number().int().min(0).optional(),
+    ...pagination,
+  })
+  .refine((q) => q.minPrice == null || q.maxPrice == null || q.minPrice <= q.maxPrice, {
+    message: 'minPrice cannot be greater than maxPrice',
+    path: ['minPrice'],
+  })
+  .refine((q) => q.minBedrooms == null || q.maxBedrooms == null || q.minBedrooms <= q.maxBedrooms, {
+    message: 'minBedrooms cannot be greater than maxBedrooms',
+    path: ['minBedrooms'],
+  });
+
 export type CreateListingInput = z.infer<typeof createListingSchema>;
 export type UpdateListingInput = z.infer<typeof updateListingSchema>;
 export type Pagination = z.infer<typeof listQuerySchema>;
+export type SearchQuery = z.infer<typeof searchQuerySchema>;
 
 export function validate<T extends z.ZodType>(schema: T, input: unknown): z.output<T> {
   const result = schema.safeParse(input);

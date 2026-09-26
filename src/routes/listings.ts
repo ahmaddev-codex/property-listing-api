@@ -6,6 +6,7 @@ import {
   updateListingSchema,
   idParamSchema,
   listQuerySchema,
+  searchQuerySchema,
   validate,
   type Pagination,
 } from '../validation.js';
@@ -23,6 +24,12 @@ export function listingsRouter() {
   router.get('/', async (req, res) => {
     const query = validate(listQuerySchema, req.query);
     res.json(paginated(await repo.listListings(query), query));
+  });
+
+  // Must be registered before /:id
+  router.get('/search', async (req, res) => {
+    const query = validate(searchQuerySchema, req.query);
+    res.json(paginated(await repo.searchListings(query), query));
   });
 
   router.post('/', async (req, res) => {
